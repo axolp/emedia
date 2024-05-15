@@ -2,32 +2,50 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def spectrum(file_name):
+    # Open the image and convert to grayscale
     img = Image.open(file_name)
     img_gray = img.convert('L')
+    
+    # Convert image data to a numpy array
     data = np.array(img_gray)
-    data_samples = data[:1000, :] if data.shape[0] > 1000 else data
+    
+    # Use only the first 1000 samples if the image is large enough
+    data_samples = data
+    
+    # Perform a 2D Fast Fourier Transform
     fft_result = np.fft.fft2(data_samples)
     fft_shift = np.fft.fftshift(fft_result)
+    
+    # Compute magnitude and phase spectrums
     magnitude_spectrum = np.log(np.abs(fft_shift))
     phase_spectrum = np.angle(fft_shift)
+    
+    # Create a new figure for this specific image analysis
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-
+    
+    # Display the original image samples
     axes[0].imshow(data_samples, cmap='gray')
     axes[0].set_title('Original Image (first 1000 samples)')
     axes[0].axis('off')
 
+    # Display the magnitude spectrum
     axes[1].imshow(magnitude_spectrum, cmap='jet', extent=[-0.5, 0.5, -0.5, 0.5])
     axes[1].set_title('Magnitude Spectrum')
     axes[1].axis('on')
 
+    # Display the phase spectrum
     axes[2].imshow(phase_spectrum, cmap='gray')
     axes[2].set_title('Phase Spectrum')
     axes[2].axis('off')
 
+    # Set a title for the whole figure
+    fig.suptitle(file_name, fontsize=16)
+
+    # Adjust layout and show the plot in a new window
     plt.tight_layout()
     plt.show()
-
 
 
 
@@ -135,4 +153,6 @@ def third_point():
 # #second_point()
 # third_point()
 
-spectrum('white')
+spectrum('black_grad.png')
+# spectrum('test_spectre_cut.png')
+# spectrum('test_spectre_centre.png')

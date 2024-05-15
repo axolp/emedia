@@ -1,3 +1,36 @@
+from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+
+def spectrum(file_name):
+    img = Image.open(file_name)
+    img_gray = img.convert('L')
+    data = np.array(img_gray)
+    data_samples = data[:1000, :] if data.shape[0] > 1000 else data
+    fft_result = np.fft.fft2(data_samples)
+    fft_shift = np.fft.fftshift(fft_result)
+    magnitude_spectrum = np.log(np.abs(fft_shift))
+    phase_spectrum = np.angle(fft_shift)
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    axes[0].imshow(data_samples, cmap='gray')
+    axes[0].set_title('Original Image (first 1000 samples)')
+    axes[0].axis('off')
+
+    axes[1].imshow(magnitude_spectrum, cmap='jet', extent=[-0.5, 0.5, -0.5, 0.5])
+    axes[1].set_title('Magnitude Spectrum')
+    axes[1].axis('on')
+
+    axes[2].imshow(phase_spectrum, cmap='gray')
+    axes[2].set_title('Phase Spectrum')
+    axes[2].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
 def readMetaData(file_name):
     with open(file_name, 'rb') as file:
         return file.read()
@@ -92,12 +125,14 @@ def third_point():
     test_data = bytes.fromhex(test_data)
     writeMetaData("modified.png", new_binary_data)
 
-idx= 0
-# Meet me on the PWR C3 after dark. 51.108811,17.060266 in hex
-secret_message= "4d656574206d65206f6e2074686520505752204333206166746572206461726b2e2035312e3130383831312c31372e303630323636" 
+# idx= 0
+# # Meet me on the PWR C3 after dark. 51.108811,17.060266 in hex
+# secret_message= "4d656574206d65206f6e2074686520505752204333206166746572206461726b2e2035312e3130383831312c31372e303630323636" 
 
 
 
-first_point()
-#second_point()
-third_point()
+# first_point()
+# #second_point()
+# third_point()
+
+spectrum('white')

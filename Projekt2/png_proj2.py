@@ -2,6 +2,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import RSA
+import binascii
 
 
 def readMetaData(file_name):
@@ -112,6 +113,7 @@ def encrypt_png_data(data, block_n):
             #print("block data", block_data)
             ascii_data= turn_to_ASCII(block_data)
             encrypted_block= encoder.encrypt(ascii_data, decoder.public_key)
+            str_encrypted_block= str(encrypted_block)
             decrypted_block= decoder.decrypt(int(encrypted_block))
             print("ascii data:", ascii_data, "encrypted: ", encrypted_block, "decrypted_ascii: ", decrypted_block, "decrypoted_hex: ", from_ascii_to_hex(decrypted_block))
             encrypted_data+= str(encrypted_block)
@@ -150,18 +152,51 @@ def rsa_image():
         data_len= int(hex_data[idx-8:idx], 16)*2 #ilosc znakow 16 do oczytania 
         #print("next idat:", hex_data[idx+8+data_len+8:idx+8+data_len+8+8+8])
         idat_data= hex_data[idx+8:idx+8+data_len]
-        encrypted_data= encrypt_png_data(idat_data, 6)
+        encrypted_data= encrypt_png_data(idat_data, 3)
         middle+= change_length_insert_ciphered_data(encrypted_data)
     new_hex_data= left + middle + right
    
           
     #print("position 8032007", new_hex_data[8032007])
     new_binary_data = bytes.fromhex(new_hex_data)
+    #new_binary_data = binascii.unhexlify(new_hex_data)
     writeMetaData("ciphered_img.png", new_binary_data)
 
+def read_rsa_iamge(path):
+    binary_file = readMetaData(path)
+    hex_data = binary_file.hex()
+    #print(hex_data)
+
+    indexes = list(find_all(hex_data, '49444154'))
+    middle= ""
+
+    indexes = list(find_all(hex_data, '49444154'))
+    middle= ""
+
+    left_idx= indexes[0]
+    left= hex_data[:left_idx-8]
+
+    right_idx= hex_data.find('49454e44')
+    right= hex_data[right_idx-8:]
+    print(left)
+    print(right)
+
+    for idx in indexes:
+        print(hex_data[idx-8:idx+8])
+        data_len= int(hex_data[idx-8:idx], 16)*2
+        print("data len:", data_len)
+        print("data: ", hex_data[idx+8:idx+8+data_len])
 
 
 
-encoder = RSA.RSA(1299821, 1299827)  
-decoder = RSA.RSA(1299811, 1299817) # n to 1 689 516 434 587 pozwala na blok o dlugosci 6
+
+#encoder = RSA.RSA(1299821, 1299827)  
+#decoder = RSA.RSA(1299811, 1299817) # n to 1 689 516 434 587 pozwala na blok o dlugosci 6
+
+encoder = RSA.RSA(101, 7001)  
+decoder = RSA.RSA(101, 7001) # n to 1 689 516 434 587 pozwala na blok o dlugosci 6
+
+#encoder = RSA.RSA(4999999, 4999963)  
+#decoder = RSA.RSA(4999991, 4999957) # n to 1 689 516 434 587 pozwala na blok o dlugosci 6
 rsa_image()
+#read_rsa_iamge("ciphered_img.png")

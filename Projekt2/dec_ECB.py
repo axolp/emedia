@@ -3,8 +3,6 @@ from PIL import Image
 from sympy import nextprime
 import zlib
 
-
-
 class RSA:
     def mod_inverse(self, e, phi):
         x0, x1, y0, y1 = 0, 1, 1, 0
@@ -39,12 +37,12 @@ class RSA:
     
     def decrypt(self, encrypted_message):
         return pow(encrypted_message, self.d, self.n)
+
 def generate_large_primes():
     p = nextprime(10**56)
-    q = nextprime(p + 10000)  
-    print("p, q: ", p,q)
+    q = nextprime(p + 10000)
+    print("p, q: ", p, q)
     return p, q
-
 
 def read_image(image_path):
     image = Image.open(image_path)
@@ -65,9 +63,6 @@ def encrypt_blocks(blocks, rsa, block_size):
         decrypted_block_int = rsa.decrypt(encrypted_block_int)
         decrypted_block = decrypted_block_int.to_bytes(block_size, byteorder='big')
 
-        
-    
-        #'''
         if block != decrypted_block:
             print(f"Original block: {block}")
             print(f"Padded block (int): {block_int}")
@@ -75,9 +70,7 @@ def encrypt_blocks(blocks, rsa, block_size):
             print(f"Encrypted block (bytes): {encrypted_block}")
             print(f"Decrypted block (int): {decrypted_block_int}")
             print(f"Decrypted block (bytes): {decrypted_block}")
-    
             print("-" * 40)
-        #'''
         
         encrypted_blocks.append(encrypted_block)
     return encrypted_blocks
@@ -94,18 +87,24 @@ def decrypt_blocks(encrypted_blocks, rsa, block_size):
         decrypted_block_int = rsa.decrypt(block_int)
         decrypted_block = decrypted_block_int.to_bytes(block_size, byteorder='big')
         decrypted_blocks.append(decrypted_block)
-
     return decrypted_blocks
 
+def read_and_convert_image(image_path):
+    image = Image.open(image_path).convert("RGB")
+    image_data = np.array(image)
+    return image_data.tobytes(), image.size, image.mode
 
-#p = 4999999  
-#q = 4999963  
+def write_image_from_bytes(image_data, image_size, image_mode, output_path):
+    image = Image.frombytes(image_mode, image_size, image_data)
+    image.save(output_path)
+
+
 p, q = generate_large_primes()
 rsa = RSA(p, q)
 
 
 image_path = 'lena.png'
-image_data, image_size, image_mode = read_image(image_path)
+image_data, image_size, image_mode = read_and_convert_image(image_path)
 print(image_size)
 print(len(image_data))
 
@@ -117,9 +116,12 @@ blocks = [image_data[i:i+block_size] for i in range(0, len(image_data), block_si
 encrypted_blocks = encrypt_blocks(blocks, rsa, block_size)
 
 
-output_path = 'ecb_encrypted_image.png'
+output_path = 'ecb_decompressed_encrypted_image.png'
 write_encrypted_image(encrypted_blocks, image_size, image_mode, output_path)
 
 
 decrypted_blocks = decrypt_blocks(encrypted_blocks, rsa, block_size)
-write_encrypted_image(decrypted_blocks, image_size, image_mode, 'ecb_decrypted_image.png')
+
+
+decrypted_image_data = b''.join(decrypted_blocks)
+write_image_from_bytes(decrypted_image_data, image_size, image_mode, 'ecb_decompressed_decrypted_image.png')

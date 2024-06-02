@@ -1,7 +1,7 @@
 class RSA:
     
     def mod_inverse(self, e, phi):
-        # Rozszerzony Algorytm Euklidesa
+      
         x0, x1, y0, y1 = 0, 1, 1, 0
         phi0 = phi
         while e != 0:
